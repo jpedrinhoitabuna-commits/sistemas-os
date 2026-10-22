@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TechOS Pro - Gestão de Ordens de Serviço de Informática</title>
+    <!-- Tailwind CSS CDN para estilização rápida e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        primaryHover: '#1d4ed8',
+                        adminPurple: '#7c3aed',
+                        adminGold: '#f59e0b',
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen flex flex-col">
+
+    <!-- Container de Toasts/Notificações Flutuantes -->
+    <div id="toast-container"></div>
+
+    <!-- ========================================== -->
+    <!-- TELA 1: AUTENTICAÇÃO E SOLICITAÇÃO DE TOKEN -->
+    <!-- ========================================== -->
+    <div id="view-login" class="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div class="max-w-md w-full bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+            <!-- Cabeçalho do Card de Login -->
+            <div class="bg-gradient-to-r from-blue-700 via-indigo-700 to-slate-900 p-6 text-white text-center relative">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/10 backdrop-blur-md mb-3 shadow-inner">
+                    <i class="fa-solid fa-microchip text-3xl text-blue-300"></i>
+                </div>
+                <h1 class="text-2xl font-black tracking-tight">TechOS Informática</h1>
+                <p class="text-blue-200 text-xs mt-1 uppercase tracking-wider font-semibold">Sistema de Gestão de Ordens de Serviço & Despacho</p>
+                <div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-100 text-xs border border-blue-400/30">
+                    <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+                    <span>Autenticação Segura 2FA com Token OTP</span>
+                </div>
+            </div>
+
+            <div class="p-6">
+                <!-- Seletor Rápido de Contas para Testes e Demonstração -->
+                <div class="mb-5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center justify-between">
+                        <span><i class="fa-solid fa-users text-blue-600 mr-1"></i> Acesso Rápido para Teste:</span>
+                        <span class="text-[10px] text-slate-400">Clique para preencher</span>
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <button type="button" onclick="App.fillDemoCredentials('admin', '123')" class="p-2 rounded-lg bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 font-semibold text-left transition flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
+                            <div>
+                                <div class="font-bold flex items-center gap-1">👑 Admin <span class="text-[10px] bg-amber-200 px-1 rounded">Prioritário</span></div>
+                                <div class="text-[10px] text-amber-700 font-normal">carlos (Prioridade Total)</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="App.fillDemoCredentials('lucas', '123')" class="p-2 rounded-lg bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-900 font-semibold text-left transition flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                            <div>
+                                <div class="font-bold">🛠️ Lucas (Técnico)</div>
+                                <div class="text-[10px] text-blue-700 font-normal">Hardware & Bancada</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="App.fillDemoCredentials('mariana', '123')" class="p-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-900 font-semibold text-left transition flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                            <div>
+                                <div class="font-bold">🌐 Mariana (Técnica)</div>
+                                <div class="text-[10px] text-emerald-700 font-normal">Redes & Servidores</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="App.fillDemoCredentials('roberto', '123')" class="p-2 rounded-lg bg-purple-50 hover:bg-purple-100 border border-purple-200 text-purple-900 font-semibold text-left transition flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                            <div>
+                                <div class="font-bold">💻 Roberto (Técnico)</div>
+                                <div class="text-[10px] text-purple-700 font-normal">Software & Suporte</div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- PASSO 1: USUÁRIO E SENHA -->
+                <form id="form-step1" onsubmit="App.handleStep1Submit(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                            Usuário ou E-mail
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i class="fa-solid fa-user"></i>
+                            </span>
+                            <input type="text" id="login-username" required placeholder="Ex: admin ou lucas"
+                                class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                            Senha de Acesso
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" id="login-password" required placeholder="Digite sua senha"
+                                class="w-full pl-10 pr-10 py-2.5 rounded-xl border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-sm transition">
+                            <button type="button" onclick="App.togglePasswordVisibility('login-password')" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="text-[11px] text-slate-400 mt-1">Dica: Todas as contas de teste usam a senha <code class="bg-slate-100 px-1 py-0.5 rounded font-bold text-slate-600">123</code></p>
+                    </div>
+
+                    <button type="submit" id="btn-submit-step1"
+                        class="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-500/30 transition transform active:scale-98 flex items-center justify-center gap-2">
+                        <span>Prosseguir para Validação de Token</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </form>
+
+                <!-- PASSO 2: SOLICITAÇÃO & VALIDAÇÃO DO TOKEN DE ACESSO (2FA) -->
+                <div id="form-step2" class="hidden space-y-4">
+                    <!-- Simulador Visual do Token (para facilitar o uso e testes) -->
+                    <div class="token-simulator-box p-4 rounded-xl text-center shadow-lg">
+                        <div class="flex items-center justify-between text-xs text-slate-400 mb-1 border-b border-slate-700 pb-1.5">
+                            <span class="flex items-center gap-1 text-emerald-400 font-semibold">
+                                <i class="fa-solid fa-paper-plane animate-bounce"></i> Token Solicitado
+                            </span>
+                            <span id="token-timer" class="font-mono text-amber-400 bg-slate-800 px-2 py-0.5 rounded">05:00</span>
+                        </div>
+                        
+                        <p class="text-xs text-slate-300 my-1">
+                            Simulação de Token enviado para: <strong id="token-user-email" class="text-blue-300">email@techos.com.br</strong>
+                        </p>
+
+                        <div class="py-2">
+                            <div class="text-[11px] text-slate-400 uppercase tracking-widest mb-1">Seu Código de Acesso:</div>
+                            <div id="display-generated-token" class="token-digits">------</div>
+                        </div>
+
+                        <button type="button" onclick="App.autoFillToken()" 
+                            class="text-xs bg-blue-600/40 hover:bg-blue-600 border border-blue-500/50 text-blue-200 hover:text-white py-1.5 px-3 rounded-lg transition inline-flex items-center gap-1.5 font-medium">
+                            <i class="fa-solid fa-copy"></i>
+                            <span>Preencher Automaticamente</span>
+                        </button>
+                    </div>
+
+                    <!-- Formulário de Confirmação do Token -->
+                    <form onsubmit="App.handleStep2Submit(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">
+                                Digite o Token de 6 Dígitos
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                                    <i class="fa-solid fa-key"></i>
+                                </span>
+                                <input type="text" id="input-token" required maxlength="6" placeholder="000000"
+                                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border-2 border-blue-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-100 outline-none text-center font-mono text-lg font-bold tracking-widest transition">
+                            </div>
+                        </div>
+
+                        <!-- OPÇÃO CRÍTICA: "LEMBRA-ME" -->
+                        <div class="remember-me-container p-3.5 rounded-xl">
+                            <label class="flex items-start gap-3 cursor-pointer">
+                                <input type="checkbox" id="check-remember-token" class="mt-1 w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500">
+                                <div class="text-xs">
+                                    <span class="font-bold text-emerald-900 block flex items-center gap-1">
+                                        <i class="fa-solid fa-bookmark text-emerald-600"></i>
+                                        LEMBRA-ME (Salvar token neste dispositivo)
+                                    </span>
+                                    <span class="text-slate-600 text-[11px] leading-tight block mt-0.5">
+                                        Quando marcado, salva o token com segurança no navegador. Nos próximos logins deste dispositivo, o sistema <strong>NÃO</strong> solicitará o token novamente.
+                                    </span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="space-y-2">
+                            <button type="submit"
+                                class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/30 transition transform active:scale-98 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check-double"></i>
+                                <span>Validar Token e Acessar</span>
+                            </button>
+
+                            <div class="flex items-center justify-between text-xs pt-1">
+                                <button type="button" onclick="App.resendToken()" class="text-blue-600 hover:text-blue-800 font-semibold hover:underline">
+                                    <i class="fa-solid fa-rotate-right mr-1"></i> Reenviar Novo Token
+                                </button>
+                                <button type="button" onclick="App.cancelTokenStep()" class="text-slate-500 hover:text-slate-700 hover:underline">
+                                    <i class="fa-solid fa-arrow-left mr-1"></i> Voltar ao Login
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Aviso de Perfil de Acesso -->
+                <div class="mt-6 pt-4 border-t border-slate-100 text-[11px] text-slate-500 flex items-center justify-between">
+                    <span class="flex items-center gap-1">
+                        <i class="fa-solid fa-circle-info text-blue-500"></i>
+                        Colaboradores têm acesso operacional restrito.
+                    </span>
+                    <span class="text-amber-600 font-bold flex items-center gap-1">
+                        <i class="fa-solid fa-crown"></i> ADM Prioritário
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TELA 2: APLICAÇÃO PRINCIPAL (DASHBOARD)     -->
+    <!-- ========================================== -->
+    <div id="view-app" class="hidden flex-1 flex flex-col">
+        <!-- Top Navbar Superior -->
+        <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <!-- Marca e Indicador de Sessão Prioritária -->
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-500/20">
+                            <i class="fa-solid fa-laptop-code text-xl"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-lg text-slate-900 tracking-tight">TechOS</span>
+                                <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded border border-slate-200 uppercase">Informática</span>
+                                
+                                <!-- BADGE DE ACESSO PRIORITÁRIO ADM (Exclusivo para o Administrador) -->
+                                <span id="badge-admin-priority" class="hidden inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full priority-tag-adm shadow-sm">
+                                    <i class="fa-solid fa-crown text-amber-200"></i>
+                                    <span>ADM: ACESSO PRIORITÁRIO ATIVO</span>
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-0.5"></span>
+                                </span>
+
+                                <!-- BADGE DO COLABORADOR -->
+                                <span id="badge-tech-standard" class="hidden inline-flex items-center gap-1 text-[11px] px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300 font-medium">
+                                    <i class="fa-solid fa-wrench text-blue-600"></i>
+                                    <span>TÉCNICO OPERACIONAL</span>
+                                </span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 flex items-center gap-2">
+                                <span id="header-priority-status">Canal Operacional Conectado</span>
+                                <span class="text-slate-300">•</span>
+                                <span id="header-trusted-device-badge" class="hidden text-emerald-600 font-semibold flex items-center gap-1">
+                                    <i class="fa-solid fa-shield-check"></i> Dispositivo Confiável ("Lembrar-me")
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Painel de Usuário e Ações Rápidas -->
+                    <div class="flex items-center gap-3">
+                        <!-- Notificação de Ordens Atribuídas -->
+                        <div class="relative">
+                            <button type="button" onclick="App.showNotifications()" title="Notificações de Ordens" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-600 transition relative">
+                                <i class="fa-regular fa-bell"></i>
+                                <span id="notif-badge" class="hidden absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full text-[10px] font-bold flex items-center justify-center">0</span>
+                            </button>
+                        </div>
+
+                        <!-- Card do Usuário Logado -->
+                        <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
+                            <img id="header-user-avatar" src="" alt="Avatar" class="w-9 h-9 rounded-xl object-cover border border-slate-300 shadow-sm">
+                            <div class="hidden sm:block text-left">
+                                <div id="header-user-name" class="text-xs font-bold text-slate-800 leading-tight">Nome Usuário</div>
+                                <div id="header-user-role" class="text-[10px] text-slate-500">Cargo</div>
+                            </div>
+                        </div>
+
+                        <!-- Botão Esquecer Token Salvo (se houver) -->
+                        <button type="button" id="btn-forget-token" onclick="App.forgetThisDevice()" title="Remover Token Salvo (Forçar solicitação de token no próximo login)"
+                            class="hidden p-2 rounded-xl text-slate-400 hover:text-amber-600 hover:bg-amber-50 text-xs transition" style="display:none;">
+                            <i class="fa-solid fa-key text-sm"></i>
+                        </button>
+
+                        <!-- Botão Sair -->
+                        <button type="button" onclick="App.logout()" title="Encerrar Sessão"
+                            class="p-2 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 text-xs transition">
+                            <i class="fa-solid fa-right-from-bracket text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Abas de Navegação -->
+                <div class="flex items-center gap-1 overflow-x-auto py-2 border-t border-slate-100 text-xs font-semibold">
+                    <button type="button" onclick="App.switchTab('orders')" id="tab-orders" class="px-3.5 py-2 rounded-lg bg-blue-50 text-blue-700 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-list-check"></i>
+                        <span>Ordens de Serviço</span>
+                        <span id="tab-orders-count" class="bg-blue-200 text-blue-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold ml-0.5">0</span>
+                    </button>
+
+                    <!-- Aba Criar/Despachar OS (Mais proeminente para o ADM) -->
+                    <button type="button" onclick="App.openCreateOrderModal()" id="tab-new-os" class="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 transition shadow-sm">
+                        <i class="fa-solid fa-plus-circle"></i>
+                        <span>Nova OS & Despacho</span>
+                    </button>
+
+                    <!-- Abas Exclusivas do Administrador -->
+                    <button type="button" onclick="App.switchTab('collaborators')" id="tab-collaborators" class="admin-only px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-users-gear text-slate-500"></i>
+                        <span>Equipe & Colaboradores</span>
+                    </button>
+
+                    <button type="button" onclick="App.switchTab('metrics')" id="tab-metrics" class="admin-only px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-chart-line text-slate-500"></i>
+                        <span>Métricas Executivas</span>
+                    </button>
+
+                    <button type="button" onclick="App.switchTab('security')" id="tab-security" class="admin-only px-3.5 py-2 rounded-lg text-slate-600 hover:bg-slate-100 flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-shield-halved text-slate-500"></i>
+                        <span>Segurança & Tokens</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Conteúdo Principal Dinâmico -->
+        <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+            <!-- Banner Informativo de Papel / Prioridade -->
+            <div id="role-banner-admin" class="hidden p-4 rounded-2xl bg-gradient-to-r from-amber-500 via-purple-600 to-indigo-700 text-white shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-crown text-amber-300"></i>
+                    </div>
+                    <div>
+                        <div class="font-black text-sm flex items-center gap-2">
+                            Painel de Controle do Administrador (Acesso Prioritário Nível 0)
+                            <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-mono uppercase">Latência Zero / Override Total</span>
+                        </div>
+                        <div class="text-xs text-amber-100">
+                            Você pode criar ordens, despachar com prioridade crítica para técnicos, gerenciar credenciais e revogar tokens de acesso a qualquer momento.
+                        </div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="App.openCreateOrderModal()" class="px-3 py-1.5 rounded-xl bg-white text-slate-900 hover:bg-amber-50 font-bold text-xs shadow transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-bolt text-amber-600"></i>
+                        <span>Despachar OS Agora</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="role-banner-colab" class="hidden p-3.5 rounded-2xl bg-blue-50 border border-blue-200 text-blue-900 flex items-center justify-between">
+                <div class="flex items-center gap-2.5 text-xs">
+                    <i class="fa-solid fa-screwdriver-wrench text-blue-600 text-lg"></i>
+                    <div>
+                        <span class="font-bold">Painel Técnico do Colaborador:</span>
+                        <span class="text-blue-800">Você está visualizando as ordens de serviço atribuídas a você para manutenção, troca de peças e apontamentos.</span>
+                    </div>
+                </div>
+                <span class="text-[11px] bg-blue-100 text-blue-700 font-semibold px-2 py-1 rounded-lg">Acesso Operacional Restrito</span>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ABA 1: LISTAGEM DE ORDENS DE SERVIÇO (PRINCIPAL) -->
+            <!-- ============================================== -->
+            <div id="tab-content-orders" class="space-y-4">
+                <!-- Barra de Filtros e Busca -->
+                <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+                    <!-- Busca rápida -->
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </span>
+                        <input type="text" id="filter-search" oninput="App.applyFilters()" placeholder="Buscar por cliente, modelo, nº de série, defeito..."
+                            class="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none text-xs transition">
+                    </div>
+
+                    <!-- Filtros Rápidos -->
+                    <div class="flex flex-wrap items-center gap-2 text-xs">
+                        <!-- Filtro de Status -->
+                        <select id="filter-status" onchange="App.applyFilters()" class="py-2 px-3 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 outline-none focus:border-blue-500">
+                            <option value="ALL">Status: Todos</option>
+                            <option value="PENDENTE">Pendentes</option>
+                            <option value="EM_ANDAMENTO">Em Andamento</option>
+                            <option value="CONCLUIDA">Concluídas</option>
+                        </select>
+
+                        <!-- Filtro de Prioridade -->
+                        <select id="filter-priority" onchange="App.applyFilters()" class="py-2 px-3 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 outline-none focus:border-blue-500">
+                            <option value="ALL">Prioridade: Todas</option>
+                            <option value="CRITICA_ADMIN">👑 Crítica (Admin)</option>
+                            <option value="ALTA">Alta</option>
+                            <option value="MEDIA">Média</option>
+                            <option value="BAIXA">Baixa</option>
+                        </select>
+
+                        <!-- Filtro de Técnico (apenas para Admin) -->
+                        <select id="filter-technician" onchange="App.applyFilters()" class="admin-only py-2 px-3 rounded-xl border border-slate-200 bg-white font-medium text-slate-700 outline-none focus:border-blue-500">
+                            <option value="ALL">Técnico: Todos</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Lista de Ordens de Serviço (Grid de Cards) -->
+                <div id="orders-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards injetados via JS -->
+                </div>
+
+                <!-- Estado Vazio caso não encontre nenhuma OS -->
+                <div id="orders-empty" class="hidden text-center py-12 bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+                    <i class="fa-solid fa-clipboard-question text-4xl text-slate-300 mb-3"></i>
+                    <h3 class="font-bold text-slate-700 text-base">Nenhuma Ordem de Serviço encontrada</h3>
+                    <p class="text-xs text-slate-400 mt-1 max-w-sm mx-auto">Nenhuma OS corresponde aos filtros selecionados ou não há atendimentos pendentes atribuídos a você.</p>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ABA 2: EQUIPE TÉCNICA E COLABORADORES (ADMIN) -->
+            <!-- ============================================== -->
+            <div id="tab-content-collaborators" class="hidden space-y-4">
+                <div class="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
+                    <div>
+                        <h2 class="font-black text-slate-800 text-base flex items-center gap-2">
+                            <i class="fa-solid fa-users text-blue-600"></i>
+                            Gestão de Técnicos & Colaboradores
+                        </h2>
+                        <p class="text-xs text-slate-500">Cadastre logins individuais para cada técnico. Cada um acessará com seu login, senha e validação de token.</p>
+                    </div>
+                    <button type="button" onclick="App.openCreateUserModal()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md shadow-blue-500/20 transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-plus"></i>
+                        <span>Novo Colaborador</span>
+                    </button>
+                </div>
+
+                <div id="collaborators-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cards de colaboradores injetados via JS -->
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ABA 3: MÉTRICAS EXECUTIVAS E FATURAMENTO (ADMIN)-->
+            <!-- ============================================== -->
+            <div id="tab-content-metrics" class="hidden space-y-6">
+                <!-- Métricas Principais -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase">Total de Ordens</div>
+                        <div id="metric-total-orders" class="text-2xl font-black text-slate-900 mt-1">0</div>
+                        <div class="text-[10px] text-blue-600 font-semibold mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-server"></i> Volume Geral
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase">Em Atendimento</div>
+                        <div id="metric-active-orders" class="text-2xl font-black text-amber-600 mt-1">0</div>
+                        <div class="text-[10px] text-amber-600 font-semibold mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-spinner animate-spin"></i> Em Bancada
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase">OS Concluídas</div>
+                        <div id="metric-completed-orders" class="text-2xl font-black text-emerald-600 mt-1">0</div>
+                        <div class="text-[10px] text-emerald-600 font-semibold mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Finalizadas
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase">Faturamento Concluído</div>
+                        <div id="metric-revenue" class="text-2xl font-black text-purple-600 mt-1">R$ 0,00</div>
+                        <div class="text-[10px] text-purple-600 font-semibold mt-1 flex items-center gap-1">
+                            <i class="fa-solid fa-receipt"></i> Peças + Mão de Obra
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Produtividade por Técnico -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <h3 class="font-bold text-slate-800 text-sm mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-chart-pie text-blue-600"></i>
+                        Produtividade e Carga de Trabalho por Técnico
+                    </h3>
+                    <div id="tech-productivity-table" class="space-y-3">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================== -->
+            <!-- ABA 4: SEGURANÇA, TOKENS E AUDITORIA (ADMIN)   -->
+            <!-- ============================================== -->
+            <div id="tab-content-security" class="hidden space-y-6">
+                <!-- Informações do Sistema de Tokens -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                                Dispositivos Confiáveis & Tokens Salvos ("Lembrar-me")
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">
+                                Gerencie quais usuários possuem tokens de acesso salvos neste navegador. A opção "LEMBRA-ME" armazena o token para dispensar nova solicitação.
+                            </p>
+                        </div>
+                        <button type="button" onclick="App.revokeAllTokens()" class="px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i>
+                            <span>Revogar Todos os Tokens Salvos</span>
+                        </button>
+                    </div>
+
+                    <div id="trusted-tokens-list" class="space-y-2">
+                        <!-- Lista de tokens persistidos via JS -->
+                    </div>
+                </div>
+
+                <!-- Histórico de Auditoria em Tempo Real -->
+                <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+                            <i class="fa-solid fa-timeline text-blue-600"></i>
+                            Log de Auditoria e Acessos ao Sistema
+                        </h3>
+                        <button type="button" onclick="App.clearAuditLogs()" class="text-xs text-slate-400 hover:text-slate-600">Limpar Registros</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] border-b border-slate-200">
+                                <tr>
+                                    <th class="py-2.5 px-3">Data / Hora</th>
+                                    <th class="py-2.5 px-3">Usuário</th>
+                                    <th class="py-2.5 px-3">Tipo</th>
+                                    <th class="py-2.5 px-3">Ação Registrada</th>
+                                </tr>
+                            </thead>
+                            <tbody id="audit-table-body" class="divide-y divide-slate-100 font-mono">
+                                <!-- Injetado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 1: CRIAR / DESPACHAR NOVA ORDEM DE SERVIÇO -->
+    <!-- ============================================== -->
+    <div id="modal-create-order" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full my-8 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-5 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-folder-plus text-2xl text-blue-300"></i>
+                    <div>
+                        <h3 class="font-bold text-base leading-tight">Cadastrar e Despachar Ordem de Serviço</h3>
+                        <p class="text-xs text-blue-200">Preencha os dados do cliente, equipamento e selecione o colaborador responsável.</p>
+                    </div>
+                </div>
+                <button type="button" onclick="App.closeModal('modal-create-order')" class="text-blue-200 hover:text-white text-lg">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form onsubmit="App.handleCreateOrderSubmit(event)" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto text-xs">
+                <!-- Seção 1: Dados do Cliente -->
+                <div>
+                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5 pb-1 border-b border-slate-100">
+                        <i class="fa-solid fa-user text-blue-600"></i> Informações do Cliente
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="sm:col-span-2">
+                            <label class="block font-bold text-slate-700 mb-1">Nome Completo / Empresa *</label>
+                            <input type="text" id="new-os-client-name" required placeholder="Ex: Dra. Juliana Ramos ou Tech Soluções Ltda"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Telefone / WhatsApp *</label>
+                            <input type="text" id="new-os-client-phone" required placeholder="(11) 98888-7777"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">E-mail para Notificação</label>
+                            <input type="email" id="new-os-client-email" placeholder="cliente@email.com"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 2: Dados do Equipamento de Informática -->
+                <div>
+                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5 pb-1 border-b border-slate-100">
+                        <i class="fa-solid fa-laptop text-blue-600"></i> Dados do Equipamento de Informática
+                    </h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Tipo de Equipamento *</label>
+                            <select id="new-os-device-type" class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none bg-white">
+                                <option value="Notebook">Notebook</option>
+                                <option value="Computador Desktop">Computador Desktop</option>
+                                <option value="Servidor">Servidor</option>
+                                <option value="Roteador / Rede">Roteador / Rede</option>
+                                <option value="Impressora / PDV">Impressora / PDV</option>
+                                <option value="Nobreak">Nobreak</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Marca e Modelo *</label>
+                            <input type="text" id="new-os-device-brand" required placeholder="Ex: Dell Inspiron 15 3520"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Número de Série (S/N)</label>
+                            <input type="text" id="new-os-device-serial" placeholder="Ex: BRJ-88192-K"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Senha do Equipamento / BIOS</label>
+                            <input type="text" id="new-os-device-password" placeholder="Ex: 123456 ou Sem senha"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block font-bold text-slate-700 mb-1">Acessórios Deixados na Entrada</label>
+                            <input type="text" id="new-os-accessories" placeholder="Ex: Carregador original, cabo de força, case"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 3: Descrição do Problema e Categoria -->
+                <div>
+                    <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] mb-2 flex items-center gap-1.5 pb-1 border-b border-slate-100">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> Relato do Problema
+                    </h4>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Defeito Relatado pelo Cliente *</label>
+                            <textarea id="new-os-description" required rows="2" placeholder="Descreva os sintomas apresentados..."
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none"></textarea>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Diagnóstico Preliminar da Recepção</label>
+                            <input type="text" id="new-os-preliminary" placeholder="Ex: Suspeita de cooler travado ou falha no SSD"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 focus:border-blue-500 outline-none">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção 4: DESPACHO E PRIORIDADE (Ponto-chave do Administrador) -->
+                <div class="p-3.5 bg-blue-50/70 border border-blue-200 rounded-xl space-y-3">
+                    <h4 class="font-bold text-blue-900 uppercase tracking-wider text-[11px] flex items-center justify-between">
+                        <span class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-paper-plane text-blue-600"></i>
+                            Despacho para o Colaborador
+                        </span>
+                        <span class="text-[10px] bg-blue-200 text-blue-800 px-2 py-0.5 rounded font-bold">Atribuição Imediata</span>
+                    </h4>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Técnico / Colaborador Destinatário *</label>
+                            <select id="new-os-assigned-to" class="w-full px-3 py-2 rounded-xl border border-blue-300 focus:border-blue-600 outline-none bg-white font-semibold text-slate-800">
+                                <option value="">-- Não atribuir agora (Fila Geral) --</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Nível de Prioridade *</label>
+                            <select id="new-os-priority" class="w-full px-3 py-2 rounded-xl border border-blue-300 focus:border-blue-600 outline-none bg-white font-semibold text-slate-800">
+                                <option value="BAIXA">🟢 Baixa (Padrão)</option>
+                                <option value="MEDIA" selected>🟡 Média (Atendimento Regular)</option>
+                                <option value="ALTA">🟠 Alta (Urgência)</option>
+                                <option value="CRITICA_ADMIN">👑 Crítica Executiva (Prioridade Máxima ADM)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                    <button type="button" onclick="App.closeModal('modal-create-order')" class="px-4 py-2.5 rounded-xl border border-slate-300 hover:bg-slate-100 font-bold text-slate-600">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-lg shadow-blue-500/20 flex items-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i>
+                        <span>Criar e Despachar OS</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 2: DETALHES, BANCADA E ANDAMENTO DA OS    -->
+    <!-- ============================================== -->
+    <div id="modal-view-order" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-3xl w-full my-8 overflow-hidden">
+            <!-- Top do Modal com Número da OS e Status -->
+            <div class="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+                <div class="flex items-center gap-3">
+                    <div id="modal-os-id" class="text-xl font-black text-slate-900 tracking-tight">OS-2026-000</div>
+                    <span id="modal-os-priority-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold">Prioridade</span>
+                    <span id="modal-os-status-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold">Status</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="App.printCurrentOrder()" class="p-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-bold transition flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i>
+                        <span class="hidden sm:inline">Imprimir OS</span>
+                    </button>
+                    <button type="button" onclick="App.closeModal('modal-view-order')" class="p-2 text-slate-400 hover:text-slate-600 text-base">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="p-6 space-y-6 max-h-[80vh] overflow-y-auto text-xs">
+                <!-- Informações Principais em Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase">Cliente & Contato</div>
+                        <div id="modal-os-client" class="font-bold text-slate-800 text-sm mt-0.5">-</div>
+                        <div id="modal-os-contact" class="text-slate-600 text-[11px] mt-0.5">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[10px] font-bold text-slate-400 uppercase">Equipamento & Acessórios</div>
+                        <div id="modal-os-device" class="font-bold text-slate-800 text-sm mt-0.5">-</div>
+                        <div id="modal-os-serial" class="text-slate-600 text-[11px] mt-0.5 font-mono">-</div>
+                        <div id="modal-os-password" class="text-blue-600 font-semibold text-[11px] mt-0.5">Senha: -</div>
+                    </div>
+                    <div class="md:col-span-2 pt-2 border-t border-slate-200">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase">Defeito Informado pelo Cliente</div>
+                        <div id="modal-os-desc" class="text-slate-700 mt-1 leading-relaxed">-</div>
+                    </div>
+                </div>
+
+                <!-- Bloco de Atualização Técnica pelo Colaborador -->
+                <div class="border border-blue-200 bg-blue-50/40 p-4 rounded-xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h4 class="font-bold text-blue-900 text-xs flex items-center gap-1.5 uppercase">
+                            <i class="fa-solid fa-screwdriver-wrench text-blue-600"></i>
+                            Bancada Técnica & Apontamentos de Andamento
+                        </h4>
+                        <div id="modal-os-assigned-tech-badge" class="text-[11px] font-semibold text-slate-600">
+                            Responsável: <span class="font-bold text-blue-800">Nome</span>
+                        </div>
+                    </div>
+
+                    <!-- Alterar Status da OS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Mudar Status da Ordem</label>
+                            <select id="modal-update-status" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold outline-none">
+                                <option value="PENDENTE">🟡 Pendente (Aguardando Início)</option>
+                                <option value="EM_ANDAMENTO">🔵 Em Andamento (Na Bancada)</option>
+                                <option value="AGUARDANDO_PECA">🟠 Aguardando Peça / Cliente</option>
+                                <option value="CONCLUIDA">🟢 Concluída (Pronto p/ Entrega)</option>
+                                <option value="CANCELADA">⚪ Cancelada</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 mb-1">Mão de Obra do Serviço (R$)</label>
+                            <input type="number" step="0.01" id="modal-update-labor" placeholder="0.00"
+                                class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Checklist de Testes de TI -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-2">Checklist Técnico de Entrada & Testes:</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px]">
+                            <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" id="chk-clean" class="rounded text-blue-600">
+                                <span>Limpeza Interna Feita</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" id="chk-paste" class="rounded text-blue-600">
+                                <span>Pasta Térmica Trocada</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" id="chk-stress" class="rounded text-blue-600">
+                                <span>Teste de Estresse OK</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" id="chk-backup" class="rounded text-blue-600">
+                                <span>Backup de Dados Feito</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" id="chk-screen" class="rounded text-blue-600">
+                                <span>Tela / Monitor OK</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer bg-white p-2 rounded-lg border border-slate-200">
+                                <input type="checkbox" id="chk-charger" class="rounded text-blue-600">
+                                <span>Fonte / Carregador OK</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Inserir Novo Apontamento Técnico -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Registrar Apontamento Técnico / Histórico</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="modal-new-tech-note" placeholder="Ex: Substituído módulo de memória defeituoso. Testes iniciados..."
+                                class="flex-1 px-3 py-2 rounded-xl border border-slate-300 bg-white outline-none">
+                            <button type="button" onclick="App.addTechnicianNote()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold">
+                                Adicionar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Laudo / Solução Técnica Final -->
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Laudo / Solução Técnica Final (Aparecerá no Termo de Entrega)</label>
+                        <textarea id="modal-technical-solution" rows="2" placeholder="Descreva os procedimentos finais realizados para solucionar o problema..."
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white outline-none"></textarea>
+                    </div>
+
+                    <!-- Peças Utilizadas -->
+                    <div class="border-t border-blue-200 pt-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-bold text-slate-700">Peças e Componentes Substituídos:</span>
+                            <span id="modal-parts-total-cost" class="font-bold text-blue-800">Total Peças: R$ 0,00</span>
+                        </div>
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="part-name" placeholder="Nome da Peça (ex: SSD Kingston 480GB)" class="flex-1 px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+                            <input type="number" id="part-price" placeholder="Preço (R$)" class="w-24 px-3 py-1.5 rounded-lg border border-slate-300 bg-white">
+                            <button type="button" onclick="App.addPart()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold">
+                                + Peça
+                            </button>
+                        </div>
+                        <div id="modal-parts-list" class="space-y-1">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
+
+                    <div class="pt-2 flex justify-end">
+                        <button type="button" onclick="App.saveOrderProgress()" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                            <span>Salvar Alterações da Bancada</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Histórico Cronológico de Atividades (Audit Trail da OS) -->
+                <div>
+                    <h4 class="font-bold text-slate-800 text-xs mb-2 flex items-center gap-1.5 uppercase">
+                        <i class="fa-solid fa-clock-rotate-left text-slate-500"></i>
+                        Histórico Cronológico da Ordem de Serviço
+                    </h4>
+                    <div id="modal-os-logs" class="space-y-2 border-l-2 border-blue-300 pl-3 ml-2 font-mono text-[11px]">
+                        <!-- Injetado via JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 3: REATRIBUIÇÃO / DESPACHO RÁPIDO DO ADM -->
+    <!-- ============================================== -->
+    <div id="modal-quick-dispatch" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 text-xs space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-bolt"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800">Despacho Prioritário da Administração</h3>
+                        <p id="dispatch-target-os-title" class="text-[11px] text-slate-500">OS-XXXX</p>
+                    </div>
+                </div>
+                <button type="button" onclick="App.closeModal('modal-quick-dispatch')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Selecione o Colaborador Responsável *</label>
+                <select id="dispatch-select-tech" class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold outline-none">
+                    <!-- Preenchido via JS com técnicos -->
+                </select>
+            </div>
+
+            <div>
+                <label class="block font-bold text-slate-700 mb-1">Nota de Despacho / Instrução Prioritária</label>
+                <textarea id="dispatch-note" rows="2" placeholder="Ex: Cliente aguardando na loja, priorizar diagnóstico imediato..."
+                    class="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none"></textarea>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+                <button type="button" onclick="App.closeModal('modal-quick-dispatch')" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 font-bold text-slate-600">
+                    Cancelar
+                </button>
+                <button type="button" onclick="App.confirmDispatch()" class="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold shadow-md shadow-amber-600/30 flex items-center gap-1.5">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span>Despachar Agora</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 4: IMPRESSÃO DA ORDEM DE SERVIÇO (A4)    -->
+    <!-- ============================================== -->
+    <div id="modal-print-os" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-3xl w-full my-6 overflow-hidden">
+            <div class="no-print p-4 bg-slate-800 text-white flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-file-invoice text-blue-400"></i>
+                    <span class="font-bold text-xs">Visualização de Impressão da Ordem de Serviço</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="window.print()" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1">
+                        <i class="fa-solid fa-print"></i>
+                        <span>Imprimir / Salvar PDF</span>
+                    </button>
+                    <button type="button" onclick="App.closeModal('modal-print-os')" class="p-1.5 text-slate-400 hover:text-white">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Folha A4 Formatada para Impressão -->
+            <div id="print-modal-content" class="p-8 text-slate-900 text-xs space-y-5 bg-white">
+                <!-- Cabeçalho Oficial da Assistência Técnica -->
+                <div class="flex items-start justify-between border-b-2 border-slate-800 pb-4">
+                    <div>
+                        <h1 class="text-xl font-black text-slate-900 tracking-tight">TechOS Informática & Suporte</h1>
+                        <p class="text-[11px] text-slate-600">Assistência Especializada em Computadores, Servidores e Redes</p>
+                        <p class="text-[10px] text-slate-500 mt-1">CNPJ: 12.345.678/0001-99 • Tel: (11) 3214-5500 • E-mail: suporte@techos.com.br</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-base font-black text-slate-900" id="print-os-id">OS-2026-000</div>
+                        <div class="text-[10px] text-slate-500 mt-0.5" id="print-os-date">Data: 22/10/2026</div>
+                        <div class="mt-1 inline-block px-2 py-0.5 rounded text-[10px] font-bold border" id="print-os-status">STATUS</div>
+                    </div>
+                </div>
+
+                <!-- Dados do Cliente e Equipamento -->
+                <div class="grid grid-cols-2 gap-4 border border-slate-200 p-3 rounded-lg bg-slate-50">
+                    <div>
+                        <div class="font-bold text-[10px] uppercase text-slate-500 mb-1">Dados do Cliente</div>
+                        <div class="font-bold text-slate-800" id="print-client-name">-</div>
+                        <div class="text-slate-600" id="print-client-phone">-</div>
+                        <div class="text-slate-600" id="print-client-email">-</div>
+                    </div>
+                    <div>
+                        <div class="font-bold text-[10px] uppercase text-slate-500 mb-1">Equipamento de TI</div>
+                        <div class="font-bold text-slate-800" id="print-device-info">-</div>
+                        <div class="text-slate-600 font-mono" id="print-device-serial">Série: -</div>
+                        <div class="text-slate-600" id="print-device-accessories">Acessórios: -</div>
+                    </div>
+                </div>
+
+                <!-- Problema Relatado e Solução -->
+                <div class="space-y-3">
+                    <div class="border border-slate-200 p-3 rounded-lg">
+                        <div class="font-bold text-[10px] uppercase text-slate-500 mb-1">Defeito Reclamado pelo Cliente</div>
+                        <div id="print-problem-desc" class="text-slate-700 leading-relaxed">-</div>
+                    </div>
+
+                    <div class="border border-slate-200 p-3 rounded-lg">
+                        <div class="font-bold text-[10px] uppercase text-slate-500 mb-1">Laudo e Solução Técnica Aplicada</div>
+                        <div id="print-solution-desc" class="text-slate-700 leading-relaxed font-mono text-[11px]">-</div>
+                    </div>
+                </div>
+
+                <!-- Resumo de Custos e Peças -->
+                <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <div class="bg-slate-100 p-2 font-bold text-[10px] uppercase text-slate-700 flex justify-between">
+                        <span>Discriminação de Serviços e Peças</span>
+                        <span>Valores</span>
+                    </div>
+                    <div class="p-3 space-y-1.5" id="print-parts-table">
+                        <!-- Injetado via JS -->
+                    </div>
+                    <div class="bg-slate-50 p-2.5 border-t border-slate-200 flex justify-between font-bold text-slate-900">
+                        <span>VALOR TOTAL DO SERVIÇO:</span>
+                        <span id="print-total-amount">R$ 0,00</span>
+                    </div>
+                </div>
+
+                <!-- Termo Legal de Garantia (Código de Defesa do Consumidor) -->
+                <div class="text-[9px] text-slate-500 border border-slate-200 p-2 rounded leading-tight">
+                    <strong>TERMO DE GARANTIA:</strong> Em conformidade com o Artigo 26, Inciso II da Lei Federal nº 8.078/1990 (Código de Defesa do Consumidor), os serviços prestados e peças substituídas possuem garantia legal de 90 (noventa) dias a contar da data de entrega do equipamento. A garantia não cobre danos decorrentes de mau uso, surtos elétricos, derramamento de líquidos ou violação do lacre de segurança por terceiros.
+                </div>
+
+                <!-- Assinaturas -->
+                <div class="grid grid-cols-2 gap-8 pt-8 text-center text-[10px]">
+                    <div>
+                        <div class="border-t border-slate-400 pt-1.5 font-bold" id="print-tech-sign">Assinatura do Técnico Responsável</div>
+                        <div class="text-slate-400">TechOS Assistência Especializada</div>
+                    </div>
+                    <div>
+                        <div class="border-t border-slate-400 pt-1.5 font-bold" id="print-client-sign">Assinatura do Cliente / Aceite dos Serviços</div>
+                        <div class="text-slate-400">Declaro ter recebido o equipamento testado e em perfeito funcionamento</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================== -->
+    <!-- MODAL 5: CADASTRAR NOVO COLABORADOR (ADMIN)    -->
+    <!-- ============================================== -->
+    <div id="modal-create-user" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-md w-full p-6 text-xs space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                    <span class="w-8 h-8 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-user-plus"></i>
+                    </span>
+                    <div>
+                        <h3 class="font-bold text-sm text-slate-800">Cadastrar Novo Colaborador</h3>
+                        <p class="text-[11px] text-slate-500">Técnico com acesso restrito e validação por token</p>
+                    </div>
+                </div>
+                <button type="button" onclick="App.closeModal('modal-create-user')" class="text-slate-400 hover:text-slate-600">
+                    <i class="fa-solid fa-xmark text-base"></i>
+                </button>
+            </div>
+
+            <form onsubmit="App.handleCreateUserSubmit(event)" class="space-y-3">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nome Completo do Técnico *</label>
+                    <input type="text" id="new-user-name" required placeholder="Ex: Gabriel Moreira"
+                        class="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Login de Acesso *</label>
+                        <input type="text" id="new-user-username" required placeholder="gabriel"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none">
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 mb-1">Senha Inicial *</label>
+                        <input type="password" id="new-user-password" required placeholder="123"
+                            class="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">E-mail (Para Envio do Token) *</label>
+                    <input type="email" id="new-user-email" required placeholder="gabriel@techos.com.br"
+                        class="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Especialidade Técnica</label>
+                    <input type="text" id="new-user-specialty" placeholder="Ex: Manutenção de Fontes e Desktops"
+                        class="w-full px-3 py-2 rounded-xl border border-slate-300 outline-none">
+                </div>
+
+                <div class="p-3 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-[11px]">
+                    <i class="fa-solid fa-shield-cat mr-1 text-amber-600"></i>
+                    <strong>Segurança:</strong> O colaborador será criado <strong>sem permissões administrativas</strong>. Ele solicitará token de acesso sempre que logar, salvando apenas se marcar "LEMBRA-ME".
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="App.closeModal('modal-create-user')" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 font-bold text-slate-600">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-md shadow-blue-500/20">
+                        Criar Colaborador
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts da Aplicação -->
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/os-manager.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
